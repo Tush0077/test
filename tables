@@ -1,0 +1,260 @@
+1️⃣ Correct Roles Table (No change needed)
+
+Your roles table is already correct:
+
+Schema::create('roles', function (Blueprint $table) {
+    $table->id();
+    $table->string('name');
+    $table->timestamps();
+});
+2️⃣ Fix Users Table (Important)
+
+Replace your users migration with this:
+
+Schema::create('users', function (Blueprint $table) {
+    $table->id();
+
+    $table->string('name');
+    $table->string('email')->unique();
+    $table->string('password');
+
+    $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete();
+
+    $table->timestamps();
+});
+
+Problem you had:
+
+role_name ❌
+
+Correct:
+
+role_id ✅
+3️⃣ Create Menus Table
+
+Run command:
+
+php artisan make:migration create_menus_table
+
+Paste this:
+
+Schema::create('menus', function (Blueprint $table) {
+    $table->id();
+    $table->string('name');
+    $table->string('slug');
+    $table->timestamps();
+});
+
+Example menus:
+
+id	name	slug
+1	Users	users
+2	Roles	roles
+3	Sellers	sellers
+4	Buyers	buyers
+5	Items	items
+6	Sales	sales
+7	P&L	pnl
+4️⃣ Create Role Menu Access Table
+
+This table will control which role can access which menu.
+
+Run:
+
+php artisan make:migration create_role_menu_access_table
+
+Migration:
+
+Schema::create('role_menu_access', function (Blueprint $table) {
+    $table->id();
+
+    $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete();
+    $table->foreignId('menu_id')->constrained('menus')->cascadeOnDelete();
+
+    $table->timestamps();
+});
+5️⃣ Sellers Table
+
+Run:
+
+php artisan make:migration create_sellers_table
+
+Code:
+
+Schema::create('sellers', function (Blueprint $table) {
+    $table->id();
+
+    $table->string('name');
+    $table->string('email')->nullable();
+    $table->string('phone')->nullable();
+
+    $table->timestamps();
+});
+6️⃣ Buyers Table
+
+Run:
+
+php artisan make:migration create_buyers_table
+
+Code:
+
+Schema::create('buyers', function (Blueprint $table) {
+    $table->id();
+
+    $table->string('name');
+    $table->string('email')->nullable();
+    $table->string('phone')->nullable();
+
+    $table->timestamps();
+});
+7️⃣ Items Table
+
+Items belong to sellers.
+
+Run:
+
+php artisan make:migration create_items_table
+
+Code:
+
+Schema::create('items', function (Blueprint $table) {
+    $table->id();
+
+    $table->string('name');
+
+    $table->foreignId('seller_id')->constrained('sellers')->cascadeOnDelete();
+
+    $table->decimal('cost_price',10,2);
+    $table->decimal('selling_price',10,2);
+
+    $table->timestamps();
+});
+8️⃣ Sales Table
+
+Sales connect items + buyers.
+
+Run:
+
+php artisan make:migration create_sales_table
+
+Code:
+
+Schema::create('sales', function (Blueprint $table) {
+    $table->id();
+
+    $table->foreignId('item_id')->constrained('items')->cascadeOnDelete();
+    $table->foreignId('buyer_id')->constrained('buyers')->cascadeOnDelete();
+
+    $table->integer('quantity');
+
+    $table->decimal('total_price',10,2);
+
+    $table->timestamps();
+});
+9️⃣ Correct Table Creation Order (VERY IMPORTANT)
+
+Run migrations in this order:
+
+1️⃣ roles
+2️⃣ users
+3️⃣ menus
+4️⃣ role_menu_access
+5️⃣ sellers
+6️⃣ buyers
+7️⃣ items
+8️⃣ sales
+
+This prevents foreign key errors.
+
+🔟 Now Run Migrations
+
+Run:
+
+php artisan migrate
+1️⃣1️⃣ Now Create Models (Relationships)
+
+Run:
+
+php artisan make:model Role
+php artisan make:model Seller
+php artisan make:model Buyer
+php artisan make:model Item
+php artisan make:model Sale
+php artisan make:model Menu
+1️⃣2️⃣ Relationships
+Role Model
+app/Models/Role.php
+public function users()
+{
+    return $this->hasMany(User::class);
+}
+User Model
+app/Models/User.php
+public function role()
+{
+    return $this->belongsTo(Role::class);
+}
+Seller Model
+public function items()
+{
+    return $this->hasMany(Item::class);
+}
+Item Model
+public function seller()
+{
+    return $this->belongsTo(Seller::class);
+}
+
+public function sales()
+{
+    return $this->hasMany(Sale::class);
+}
+Buyer Model
+public function sales()
+{
+    return $this->hasMany(Sale::class);
+}
+Sale Model
+public function item()
+{
+    return $this->belongsTo(Item::class);
+}
+
+public function buyer()
+{
+    return $this->belongsTo(Buyer::class);
+}
+1️⃣3️⃣ Now Create Filament Resources
+
+Run:
+
+php artisan make:filament-resource Role
+php artisan make:filament-resource User
+php artisan make:filament-resource Seller
+php artisan make:filament-resource Buyer
+php artisan make:filament-resource Item
+php artisan make:filament-resource Sale
+
+This will create admin panels automatically.
+
+1️⃣4️⃣ Final Database Structure
+
+Your database will contain:
+
+roles
+users
+menus
+role_menu_access
+sellers
+buyers
+items
+sales
+⭐ Next Important Part (Manager will check this)
+
+Now you must implement:
+
+✔ Role based menu access
+✔ Admin controls menus
+✔ P&L report
+
+This part is the hardest in the assignment.

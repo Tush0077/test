@@ -1,0 +1,136 @@
+1️⃣ First Finish Database Tables
+
+Before running Filament resource commands, you must have these tables in the database:
+
+roles
+users
+menus
+role_menu_access
+sellers
+buyers
+items
+sales
+
+So first you should:
+
+Create migrations
+
+Paste the migration code
+
+Run
+
+php artisan migrate
+
+After this, your database will be ready.
+
+2️⃣ Then Run Filament Resource Commands
+
+After migrations, run these commands one by one.
+
+php artisan make:filament-resource Role
+php artisan make:filament-resource User
+php artisan make:filament-resource Seller
+php artisan make:filament-resource Buyer
+php artisan make:filament-resource Item
+php artisan make:filament-resource Sale
+3️⃣ What Happens When You Run These Commands
+
+Example command:
+
+php artisan make:filament-resource Seller
+
+Laravel will create these files automatically:
+
+app
+ └ Filament
+     └ Resources
+         SellerResource.php
+         SellerResource
+             Pages
+                 CreateSeller.php
+                 EditSeller.php
+                 ListSellers.php
+
+These files create:
+
+✔ Sellers list page
+✔ Create seller form
+✔ Edit seller page
+✔ Delete option
+
+All automatically inside the Filament admin panel.
+
+4️⃣ What You Will See After Running Server
+
+Run:
+
+php artisan serve
+
+Then open:
+
+http://localhost:8000/admin
+
+You will see something like this sidebar:
+
+Dashboard
+Users
+Roles
+Sellers
+Buyers
+Items
+Sales
+
+Each menu will open a table view like this:
+
+Sellers
+
++ Create Seller
+
+| ID | Name | Email | Phone |
+|----|------|------|------|
+|1|ABC Traders|abc@mail.com|999999|
+
+With buttons:
+
+Edit
+Delete
+View
+5️⃣ One Important Thing
+
+When you run:
+
+php artisan make:filament-resource User
+
+Laravel will ask:
+
+Generate for existing model? (yes/no)
+
+Type:
+
+yes
+
+Because User model already exists.
+
+6️⃣ Correct Order For Filament Commands
+
+Run them like this:
+
+Role
+User
+Seller
+Buyer
+Item
+Sale
+7️⃣ After That
+
+You will implement:
+
+role permissions
+
+menu access control
+
+P&L report
+
+These are the actual assignment requirements.
+
+✅ So answer: Yes, you should run those Filament commands after migrations.

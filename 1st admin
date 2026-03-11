@@ -1,0 +1,141 @@
+1️⃣ Login Page in Filament
+
+After installing Filament and creating an admin user, you will access the panel like this:
+
+http://localhost:8000/admin
+
+When you open this, Filament will automatically show a login page.
+
+Example flow:
+
+User opens /admin
+        ↓
+Login page appears
+        ↓
+User enters email + password
+        ↓
+Dashboard opens
+
+So you do not need to build login manually.
+
+2️⃣ How the First User Will Be Created
+
+Before logging in, you need to create the first admin user.
+
+Run this command:
+
+php artisan make:filament-user
+
+Terminal will ask:
+
+Name:
+Email:
+Password:
+
+Example:
+
+Name: Admin
+Email: admin@gmail.com
+Password: 12345678
+
+After this, the admin user will be saved in the users table.
+
+Now you can login.
+
+3️⃣ How Other Users Will Be Created
+
+After admin logs in:
+
+http://localhost:8000/admin
+
+Admin can open:
+
+Users → Create User
+
+Then create users like:
+
+Name	Email	Role
+John	john@mail.com
+	Seller
+Rahul	rahul@mail.com
+	Buyer
+
+So registration is handled by admin, not by public users.
+
+This is how most admin systems work in companies.
+
+4️⃣ How Login Will Work in Your System
+
+Example:
+
+Admin
+Email: admin@mail.com
+Role: Admin
+
+Admin sees:
+
+Users
+Roles
+Sellers
+Buyers
+Items
+Sales
+P&L
+Seller
+Email: seller@mail.com
+Role: Seller
+
+Seller sees:
+
+Items
+Sales
+Buyer
+Email: buyer@mail.com
+Role: Buyer
+
+Buyer sees:
+
+Items
+
+This happens because of database-driven menu access.
+
+5️⃣ So Do You Need Registration Page?
+
+❌ No public registration page needed.
+
+Your system will work like this:
+
+Admin creates users
+        ↓
+Users login through Filament
+        ↓
+Roles control what they can see
+6️⃣ Complete Flow of Your Assignment
+
+1️⃣ Install Laravel
+2️⃣ Install Filament
+3️⃣ Create tables
+4️⃣ Run migrations
+5️⃣ Create Filament resources
+6️⃣ Create admin user
+7️⃣ Login to /admin
+8️⃣ Insert data using Filament
+9️⃣ Implement role-based menu access
+🔟 Implement P&L report
+
+⭐ One Important Thing
+
+Your manager specifically wrote:
+
+Admin must be able to control which roles can access which pages
+
+That means later we must build a role-menu management system inside the admin panel.
+
+Admin should be able to do something like:
+
+Role: Seller
+Allow menus:
+✔ Items
+✔ Sales
+
+This part is the main logic of your assignment.

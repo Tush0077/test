@@ -1,0 +1,172 @@
+1️⃣ First Understand the Logic
+
+Suppose your system has these roles:
+
+id	Role
+1	Admin
+2	Seller
+3	Buyer
+4	Staff
+
+And menus:
+
+id	Menu
+1	Users
+2	Roles
+3	Sellers
+4	Buyers
+5	Items
+6	Sales
+7	P&L
+
+Now we create menu permissions like this:
+
+role_menu_access table
+role_id	menu_id
+1	1
+1	2
+1	3
+1	4
+1	5
+1	6
+1	7
+
+(Admin sees everything)
+
+Example seller:
+
+role_id	menu_id
+2	5
+2	6
+
+Seller sees:
+
+Items
+Sales
+2️⃣ Insert Menu Data
+
+Open Filament → Menus (after creating Menu resource).
+
+Add:
+
+Name	Slug
+Users	users
+Roles	roles
+Sellers	sellers
+Buyers	buyers
+Items	items
+Sales	sales
+P&L	pnl
+
+Now your menus table is ready.
+
+3️⃣ Give Menu Access to Roles
+
+Create entries in role_menu_access table.
+
+Example:
+
+Seller
+role_id	menu_id
+2	5
+2	6
+Buyer
+role_id	menu_id
+3	5
+Staff
+role_id	menu_id
+4	6
+4️⃣ Hide/Show Menus in Filament
+
+Now we control menu visibility.
+
+Open for example:
+
+app/Filament/Resources/UserResource.php
+
+Add this function:
+
+public static function shouldRegisterNavigation(): bool
+{
+    $user = auth()->user();
+
+    return \DB::table('role_menu_access')
+        ->join('menus', 'menus.id', '=', 'role_menu_access.menu_id')
+        ->where('role_menu_access.role_id', $user->role_id)
+        ->where('menus.slug', 'users')
+        ->exists();
+}
+
+What this does:
+
+Check logged user role
+↓
+Check role_menu_access table
+↓
+If menu allowed → show
+If not allowed → hide
+5️⃣ Example for Items Menu
+
+Inside:
+
+ItemResource.php
+
+Add:
+
+public static function shouldRegisterNavigation(): bool
+{
+    $user = auth()->user();
+
+    return \DB::table('role_menu_access')
+        ->join('menus', 'menus.id', '=', 'role_menu_access.menu_id')
+        ->where('role_menu_access.role_id', $user->role_id)
+        ->where('menus.slug', 'items')
+        ->exists();
+}
+6️⃣ Final Result
+
+Admin login:
+
+Dashboard
+Users
+Roles
+Sellers
+Buyers
+Items
+Sales
+P&L
+
+Seller login:
+
+Dashboard
+Items
+Sales
+
+Buyer login:
+
+Dashboard
+Items
+
+Staff login:
+
+Dashboard
+Sales
+
+Menus appear based on database permissions.
+
+7️⃣ Why This Is Important
+
+Your manager wants to see if you understand:
+
+✔ database relationships
+✔ role permissions
+✔ dynamic menu control
+✔ backend logic
+
+This is the real test of the assignment.
+
+⭐ Pro Tip (Important)
+
+Instead of repeating the same code in every resource, professionals create a helper function to check menu permissions.
+
+That makes the code clean and scalable.

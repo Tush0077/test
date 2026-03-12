@@ -1,0 +1,208 @@
+1️⃣ Sales chart on dashboard
+2️⃣ Top selling items
+3️⃣ Monthly revenue graph
+
+All using Filament widgets.
+
+1️⃣ Sales Chart on Dashboard
+
+Create chart widget:
+
+php artisan make:filament-widget SalesChart --chart
+
+Open:
+
+app/Filament/Widgets/SalesChart.php
+
+Replace with:
+
+namespace App\Filament\Widgets;
+
+use Filament\Widgets\ChartWidget;
+use App\Models\Sale;
+
+class SalesChart extends ChartWidget
+{
+    protected static ?string $heading = 'Sales Overview';
+
+    protected function getData(): array
+    {
+        $sales = Sale::selectRaw('DATE(created_at) as date, SUM(total_price) as total')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->limit(7)
+            ->get();
+
+        return [
+            'datasets' => [
+                [
+                    'label' => 'Sales',
+                    'data' => $sales->pluck('total'),
+                ],
+            ],
+            'labels' => $sales->pluck('date'),
+        ];
+    }
+
+    protected function getType(): string
+    {
+        return 'line';
+    }
+}
+
+Now dashboard will show sales trend graph.
+
+2️⃣ Top Selling Items Widget
+
+Create widget:
+
+php artisan make:filament-widget TopItems
+
+Open:
+
+app/Filament/Widgets/TopItems.php
+
+Code:
+
+namespace App\Filament\Widgets;
+
+use Filament\Widgets\TableWidget as BaseWidget;
+use Filament\Tables;
+use App\Models\Sale;
+use Illuminate\Support\Facades\DB;
+
+class TopItems extends BaseWidget
+{
+    protected function getTableQuery()
+    {
+        return Sale::select(
+            'items.name',
+            DB::raw('SUM(quantity) as total_sold')
+        )
+        ->join('items','sales.item_id','=','items.id')
+        ->groupBy('items.name')
+        ->orderByDesc('total_sold')
+        ->limit(5);
+    }
+
+    protected function getTableColumns(): array
+    {
+        return [
+
+Tables\Columns\TextColumn::make('name')
+->label('Item'),
+
+Tables\Columns\TextColumn::make('total_sold')
+->label('Total Sold'),
+
+        ];
+    }
+}
+
+Now dashboard shows:
+
+Top Selling Items
+Item Name | Total Sold
+
+Managers love this feature.
+
+3️⃣ Monthly Revenue Graph
+
+Create widget:
+
+php artisan make:filament-widget MonthlyRevenue --chart
+
+Open:
+
+app/Filament/Widgets/MonthlyRevenue.php
+
+Code:
+
+namespace App\Filament\Widgets;
+
+use Filament\Widgets\ChartWidget;
+use App\Models\Sale;
+
+class MonthlyRevenue extends ChartWidget
+{
+    protected static ?string $heading = 'Monthly Revenue';
+
+    protected function getData(): array
+    {
+        $data = Sale::selectRaw('MONTH(created_at) as month, SUM(total_price) as total')
+            ->groupBy('month')
+            ->orderBy('month')
+            ->get();
+
+        return [
+            'datasets' => [
+                [
+                    'label' => 'Revenue',
+                    'data' => $data->pluck('total'),
+                ],
+            ],
+            'labels' => $data->pluck('month'),
+        ];
+    }
+
+    protected function getType(): string
+    {
+        return 'bar';
+    }
+}
+
+Now dashboard will show monthly revenue bar chart.
+
+4️⃣ Add Widgets to Dashboard
+
+Open:
+
+app/Providers/Filament/AdminPanelProvider.php
+
+Or dashboard provider.
+
+Add widgets:
+
+->widgets([
+    \App\Filament\Widgets\StatsOverview::class,
+    \App\Filament\Widgets\SalesChart::class,
+    \App\Filament\Widgets\MonthlyRevenue::class,
+    \App\Filament\Widgets\TopItems::class,
+])
+Final Dashboard Look
+
+Your admin dashboard will show:
+
+Total Sales
+Total Items
+Total Buyers
+
+Sales Chart
+Monthly Revenue Chart
+
+Top Selling Items
+
+This makes the project look like a real analytics dashboard, not just CRUD.
+
+Small Extra Trick (Managers Notice This)
+
+Change icons in resources:
+
+Example:
+
+protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
+
+Some good icons:
+
+Users → heroicon-o-users
+Items → heroicon-o-cube
+Sales → heroicon-o-shopping-cart
+P&L → heroicon-o-chart-bar
+
+✅ If you want, I can also show one final powerful feature that makes this project look senior-level:
+
+• Role-based dashboard (Admin sees full analytics, Seller sees only their sales)
+• Automatic stock deduction when sale happens
+• Low stock warning system
+
+These are the kind of things managers love in Laravel tests.

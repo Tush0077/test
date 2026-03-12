@@ -1,0 +1,238 @@
+1️⃣ Auto sale price calculation
+2️⃣ Proper P&L page with date filter
+3️⃣ Professional dashboard widgets
+
+I’ll give you ready-to-paste code.
+
+1️⃣ Auto Sale Price Calculation (Filament Form)
+
+Open:
+
+app/Filament/Resources/SaleResource.php
+
+Inside form() replace fields like this:
+
+use Filament\Forms;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+
+public static function form(Form $form): Form
+{
+    return $form
+        ->schema([
+            
+Select::make('item_id')
+    ->relationship('item','name')
+    ->reactive()
+    ->required(),
+
+Select::make('buyer_id')
+    ->relationship('buyer','name')
+    ->required(),
+
+TextInput::make('quantity')
+    ->numeric()
+    ->reactive()
+    ->afterStateUpdated(function ($state, callable $set, callable $get) {
+
+        $item = \App\Models\Item::find($get('item_id'));
+
+        if($item){
+            $set('total_price', $item->selling_price * $state);
+        }
+
+    })
+    ->required(),
+
+TextInput::make('total_price')
+    ->numeric()
+    ->disabled()
+    ->dehydrated()
+
+        ]);
+}
+
+Now when user enters quantity, Filament automatically calculates:
+
+Total Price = Selling Price × Quantity
+
+Your manager will like this logic 👍
+
+2️⃣ Create Professional P&L Page
+
+Create page:
+
+php artisan make:filament-page ProfitLoss
+
+File:
+
+app/Filament/Pages/ProfitLoss.php
+
+Replace code with:
+
+namespace App\Filament\Pages;
+
+use Filament\Pages\Page;
+use App\Models\Sale;
+use Illuminate\Support\Facades\DB;
+
+class ProfitLoss extends Page
+{
+    protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
+
+    protected static string $view = 'filament.pages.profit-loss';
+
+    public $startDate;
+    public $endDate;
+
+    public $totalSales = 0;
+    public $totalCost = 0;
+    public $profit = 0;
+
+    public function generateReport()
+    {
+
+        $sales = Sale::whereBetween('created_at',[$this->startDate,$this->endDate])->sum('total_price');
+
+        $cost = Sale::join('items','sales.item_id','=','items.id')
+            ->whereBetween('sales.created_at',[$this->startDate,$this->endDate])
+            ->sum(DB::raw('items.cost_price * sales.quantity'));
+
+        $this->totalSales = $sales;
+
+        $this->totalCost = $cost;
+
+        $this->profit = $sales - $cost;
+
+    }
+}
+3️⃣ P&L Blade View
+
+Create:
+
+resources/views/filament/pages/profit-loss.blade.php
+
+Code:
+
+<x-filament::page>
+
+<div class="grid grid-cols-3 gap-6">
+
+<div class="p-6 bg-white rounded-xl shadow">
+<h2 class="text-lg font-bold">Total Sales</h2>
+<p class="text-2xl text-green-600">₹ {{ $totalSales }}</p>
+</div>
+
+<div class="p-6 bg-white rounded-xl shadow">
+<h2 class="text-lg font-bold">Total Cost</h2>
+<p class="text-2xl text-red-600">₹ {{ $totalCost }}</p>
+</div>
+
+<div class="p-6 bg-white rounded-xl shadow">
+<h2 class="text-lg font-bold">Profit / Loss</h2>
+<p class="text-2xl text-blue-600">₹ {{ $profit }}</p>
+</div>
+
+</div>
+
+<div class="mt-6 p-6 bg-white rounded-xl shadow">
+
+<div class="flex gap-4">
+
+<input type="date" wire:model="startDate" class="border p-2 rounded">
+
+<input type="date" wire:model="endDate" class="border p-2 rounded">
+
+<button wire:click="generateReport" class="bg-primary-600 text-white px-4 py-2 rounded">
+Generate Report
+</button>
+
+</div>
+
+</div>
+
+</x-filament::page>
+
+Now you can select:
+
+Start Date
+End Date
+Generate Report
+
+And see P&L for that period.
+
+Exactly what your manager asked.
+
+4️⃣ Professional Dashboard (Stats Widgets)
+
+Create widget:
+
+php artisan make:filament-widget StatsOverview --stats-overview
+
+File:
+
+app/Filament/Widgets/StatsOverview.php
+
+Code:
+
+namespace App\Filament\Widgets;
+
+use Filament\Widgets\StatsOverviewWidget as BaseWidget;
+use Filament\Widgets\StatsOverviewWidget\Card;
+use App\Models\Sale;
+use App\Models\Item;
+use App\Models\Buyer;
+
+class StatsOverview extends BaseWidget
+{
+    protected function getCards(): array
+    {
+        return [
+
+Card::make('Total Sales', Sale::sum('total_price'))
+->description('All sales revenue')
+->color('success'),
+
+Card::make('Total Items', Item::count())
+->description('Items in system')
+->color('primary'),
+
+Card::make('Total Buyers', Buyer::count())
+->description('Registered buyers')
+->color('warning'),
+
+        ];
+    }
+}
+
+Your dashboard will show:
+
+Total Sales
+Total Items
+Total Buyers
+
+Looks very professional.
+
+Final Result Your Manager Will See
+
+Admin panel menu:
+
+Dashboard
+Users
+Roles
+Sellers
+Buyers
+Items
+Sales
+P&L
+
+Features:
+
+✔ Role based menu access
+✔ CRUD for all modules
+✔ Auto price calculation
+✔ P&L report with date filter
+✔ Professional dashboard widgets
+
+This is exactly the kind of solution expected when using
+Filament.

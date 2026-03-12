@@ -1,0 +1,151 @@
+1️⃣ Fix Relationships in Models (Very Important)
+
+Without relationships, Filament dropdowns won’t work properly.
+
+Item Model
+
+app/Models/Item.php
+
+public function seller()
+{
+    return $this->belongsTo(Seller::class);
+}
+
+public function sales()
+{
+    return $this->hasMany(Sale::class);
+}
+Sale Model
+
+app/Models/Sale.php
+
+public function item()
+{
+    return $this->belongsTo(Item::class);
+}
+
+public function buyer()
+{
+    return $this->belongsTo(Buyer::class);
+}
+Seller Model
+public function items()
+{
+    return $this->hasMany(Item::class);
+}
+Buyer Model
+public function sales()
+{
+    return $this->hasMany(Sale::class);
+}
+2️⃣ Fix Sales Form (Auto Price Calculation)
+
+Inside SaleResource form, make:
+
+item dropdown
+
+buyer dropdown
+
+quantity input
+
+Then calculate total_price.
+
+Example logic:
+
+total_price = item.selling_price * quantity
+
+This is the real sale transaction logic.
+
+3️⃣ Test Full Flow (Manager Will Test This)
+
+Try this yourself:
+
+1️⃣ Create Seller
+2️⃣ Create Item
+3️⃣ Add Buyer
+4️⃣ Create Sale
+
+Example:
+
+Item	Cost	Sell
+Phone	300	500
+
+Sale:
+
+Quantity = 2
+Total = 1000
+4️⃣ Build the P&L Page (Most Important Part)
+
+Your manager specifically asked:
+
+Find P&L for a particular period.
+
+Create logic:
+
+Total Sales = sum(total_price)
+Total Cost = sum(cost_price * quantity)
+Profit = Sales - Cost
+
+Example Laravel logic:
+
+$totalSales = Sale::sum('total_price');
+
+$totalCost = Sale::join('items','sales.item_id','=','items.id')
+->sum(DB::raw('items.cost_price * sales.quantity'));
+
+$profit = $totalSales - $totalCost;
+5️⃣ Add Date Filter
+
+Manager said particular period.
+
+Example:
+
+Start Date
+End Date
+Generate Report
+
+Query:
+
+Sale::whereBetween('created_at',[$start,$end])
+6️⃣ Check Menu Permissions Again
+
+Test different roles:
+
+Admin
+
+Should see:
+
+Users
+Roles
+Sellers
+Buyers
+Items
+Sales
+P&L
+Seller
+Items
+Sales
+Buyer
+Sales
+7️⃣ Clean the Sidebar
+
+Make sure:
+
+no duplicate menus
+
+role restrictions working
+
+menu names match database
+
+8️⃣ Final Test (Before Showing Manager)
+
+Test this full scenario:
+
+1️⃣ Login as Admin
+2️⃣ Create Seller
+3️⃣ Create Item
+4️⃣ Create Buyer
+5️⃣ Make Sale
+6️⃣ Check P&L report
+
+If this works → your assignment is basically complete.
